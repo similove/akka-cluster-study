@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="off" monitorInterval="1800">
+  <properties>
+    <property name="LOG_HOME">logs</property>
+    <property name="LOG_FILE_NAME">akka-cluster-rerank</property>
+  </properties>
+  <Appenders>
+    <!-- 打印到控制台 -->
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%-24d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - %msg%n"/>
+    </Console>
+    <!-- 打印到文件 -->
+    <RollingRandomAccessFile name="FileLog" fileName="${LOG_HOME}/${LOG_FILE_NAME}.log"
+      filePattern="${LOG_HOME}/${LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+      <PatternLayout pattern="%-24d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - %msg%n"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy/>
+        <SizeBasedTriggeringPolicy size="50MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="20"/>
+    </RollingRandomAccessFile>
+  </Appenders>
+  <Loggers>
+    <logger name="com.zjw" level="info" includeLocation="true" additivity="false">
+      <appender-ref ref="FileLog"/>
+      <appender-ref ref="Console"/>
+    </logger>
+    <root level="info" includeLocation="true">
+      <appender-ref ref="FileLog"/>
+      <appender-ref ref="Console"/>
+    </root>
+  </Loggers>
+</Configuration>
