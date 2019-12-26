@@ -4,7 +4,7 @@ import java.util.Random
 
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, ActorRef, Props, RootActorPath, Terminated}
+import akka.actor.{Actor, ActorRef, RootActorPath, Terminated}
 import akka.cluster.{Cluster, Member, MemberStatus}
 import akka.cluster.ClusterEvent._
 import akka.pattern.ask
@@ -135,7 +135,6 @@ class EngineServer extends Actor with Logging {
   }
 
 }
-
 
 object EngineServer extends Logging {
   def initAkkaCompone(): Unit = {

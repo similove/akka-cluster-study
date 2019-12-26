@@ -2,7 +2,7 @@ package com.zjw.actor
 
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, Props, RootActorPath}
+import akka.actor.{Actor, RootActorPath}
 import akka.cluster.{Cluster, Member, MemberStatus}
 import akka.cluster.ClusterEvent._
 import akka.util.Timeout
@@ -83,13 +83,10 @@ object RecallServer extends Logging {
       .parseString("akka.cluster.roles = [recall]")
       .withFallback(AkkaContext.conf)
     AkkaContext.initActorSystem(Option(config))
-
     val system = AkkaContext.getSystem
 
     val zkS = ZookeeperClusterSeed(system)
-
     zkS.join()
-
   }
 
   def main(args: Array[String]): Unit = {

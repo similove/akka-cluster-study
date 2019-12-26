@@ -9,7 +9,6 @@ ENV MODEL engine
 
 RUN mvn clean package -DskipTests && \
     mkdir /software
-    cp /work/
 
 
 

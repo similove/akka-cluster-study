@@ -7,6 +7,106 @@ if [ -z "${AKKA_CLUSTER_HOME}" ]; then
   export AKKA_CLUSTER_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 fi
 
+JAVA_OPTS="-Dfile.encoding=UTF-8 -Dlog4j.configurationFile=file://${AKKA_CLUSTER_HOME}/conf/log4j2.xml "
+
+JARS=$(echo ${AKKA_CLUSTER_HOME}/libs/*.jar | tr ' ' ':'):$(echo ${AKKA_CLUSTER_HOME}/jars/*.jar | tr ' ' ':'):$(echo ${AKKA_CLUSTER_HOME}/*/target/scala-2.11/*.jar | tr ' ' ':')
+
+function setEnv() {
+    export BIN_DIR=${AKKA_CLUSTER_HOME}
+    export MODE=$1
+    if [ "$1" == "dev" ]; then
+        dev
+    elif [ "$1" == "pro" ]; then
+        pro
+    else
+        echo "unknow env."
+        exit -1
+    fi
+}
+
+function pro() {
+    export PID_FILE=/var/run/release/${APP_NAME}-${MODULE}.pid
+    export LOG_FILE=/var/log/release/${APP_NAME}-${MODULE}.${DATE_VERSION}.log
+    JAVA_OPTS=${JAVA_OPTS}"-Xms2g -Xmx2g \
+                           -XX:ParallelGCThreads=8 \
+                           -XX:SurvivorRatio=1 \
+                           -XX:LargePageSizeInBytes=128M \
+                           -XX:MaxNewSize=1g  \
+                           -XX:CMSInitiatingOccupancyFraction=80 \
+                           -XX:+UseCMSCompactAtFullCollection \
+                           -XX:CMSFullGCsBeforeCompaction=0 \
+                           -XX:-UseGCOverheadLimit \
+                           -XX:MaxTenuringThreshold=5  \
+                           -XX:GCTimeRatio=19  \
+                           -XX:+UseConcMarkSweepGC \
+                           -XX:+UseParNewGC \
+                           -XX:+PrintGCDetails \
+                           -XX:+PrintGCTimeStamps \
+                           -XX:+HeapDumpOnOutOfMemoryError \
+                           -XX:HeapDumpPath=/var/log/release/${APP_NAME}-${MODULE}.dump \
+                           -Xloggc:/var/log/release/${APP_NAME}-${MODULE}-gc.$DATE_VERSION.log"
+}
+
+function dev() {
+    export PID_FILE=/tmp/${APP_NAME}-${MODULE}.${USER}.pid
+    export LOG_FILE=/tmp/${APP_NAME}-${MODULE}.${USER}.log
+    JAVA_OPTS=${JAVA_OPTS}"-XX:+PrintGCDetails \
+                         -XX:+PrintGCTimeStamps \
+                         -XX:+HeapDumpOnOutOfMemoryError \
+                         -XX:HeapDumpPath=/tmp/${APP_NAME}-${MODULE}.dump \
+                         -Xloggc:/tmp/${APP_NAME}-${MODULE}-gc.log"
+}
+
+function start_module() {
+    MODULE=$1
+    setEnv $2
+
+    case "$1" in
+    recall)
+        MAIN_CLASS=com.zjw.actor.RecallServer
+        ;;
+    rerank)
+        MAIN_CLASS=com.zjw.actor.RerankServer
+        ;;
+    engine)
+        MAIN_CLASS=com.zjw.actor.EngineServer
+        ;;
+    *)
+        echo "can not get main class."
+        exit -1
+    esac
+
+    java $JAVA_OPTS -cp $JARS $MAIN_CLASS
+}
+
+function stop() {
+
+    MODULE=$1
+
+    setEnv $2
+
+    echo "Stop App $APP_NAME-${MODULE}"
+    if [ -s ${PID_FILE} ]; then
+        echo "stopping ${APP_NAME}-${MODULE}: $(cat ${PID_FILE})"
+        kill -9 $(cat ${PID_FILE})
+        rm -f ${PID_FILE}
+    else
+        echo "pid file not found"
+        exit 1
+    fi
+}
+
+function status() {
+    echo "$APP_NAME Status"
+    if [ -s ${PID_FILE} ]; then
+        ps h -fp $(cat ${PID_FILE})
+    fi
+}
+
+function common_run() {
+   java $JAVA_OPTS -cp $JARS "$@"
+}
+
 function usage() {
 cat << EOF
   Usage: ./bootstrap.sh package
@@ -18,7 +118,7 @@ EOF
 }
 
 function package() {
-  cd $AKKA_CLUSTER_HOME
+  cd ${AKKA_CLUSTER_HOME}
   echo "Package App $APP_NAME-$APP_VERSION"
   mvn clean package -Dmaven.test.skip=true
 }

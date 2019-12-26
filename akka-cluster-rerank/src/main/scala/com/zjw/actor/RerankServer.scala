@@ -2,7 +2,7 @@ package com.zjw.actor
 
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, Props, RootActorPath}
+import akka.actor.{Actor, RootActorPath}
 import akka.cluster.{Cluster, Member, MemberStatus}
 import akka.cluster.ClusterEvent._
 import akka.util.Timeout
