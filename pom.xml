@@ -22,7 +22,7 @@
     <akka.version>2.5.18</akka.version>
     <java-version>1.8</java-version>
     <org.slf4j.version>1.7.25</org.slf4j.version>
-    <apache.log4j.version>2.11.2</apache.log4j.version>
+    <apache.log4j.version>2.13.3</apache.log4j.version>
     <jackson.version>2.10.1</jackson.version>
     <build.lib.path>${project.basedir}/libs</build.lib.path>
     <project.jars.path>${project.basedir}/jars</project.jars.path>
